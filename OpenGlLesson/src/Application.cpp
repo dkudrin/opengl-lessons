@@ -6,6 +6,27 @@
 #include <sstream>
 #pragma comment(lib,"user32.lib")
 
+#define ASSERT(x) if (!(x)) __debugbreak(); // Visual Studio specific breakpoint set
+#define GlCall(x) GlClearError();\
+	x;\
+	ASSERT(GlLogCall(__FILE__, #x, __LINE__))
+
+static void GlClearError() // функция очистки OpenGL от старых ошибок
+{
+	while (glGetError() != GL_NO_ERROR); // пока еть ошибки прочитать их
+}
+
+static bool GlLogCall(const char* fileName, const char* funcName, int codeLine) // функция вывода в цикле всех ошибок OpenGL
+{
+	while (GLenum error = glGetError())
+	{
+		std::cout << "[OpenGL Error] (" << error << ") File:" << fileName <<
+			"; Function name:" << funcName << "; Codeline: " << codeLine << std::endl;
+		return false;
+	}
+	return true;
+}
+
 struct ShaderProgramSource
 {
 	std::string VertexSource;
@@ -52,23 +73,23 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
 	unsigned int id = glCreateShader(type); // returns ID of shader
 	const char* src = source.c_str(); // переводим текст шейдера в строку
-	glShaderSource(id, 1, &src, nullptr); // передаем строку как источник шейдра
-	glCompileShader(id); // компилировать строку с шейдером
+	GlCall(glShaderSource(id, 1, &src, nullptr)); // передаем строку как источник шейдра
+	GlCall(glCompileShader(id)); // компилировать строку с шейдером
 
 	// TODO: add errors handling
 	int result;
-	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+	GlCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
 	if (result == GL_FALSE)
 	{
 		int length;
-		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+		GlCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
 		char* message = (char*)alloca(length * sizeof(char));
-		glGetShaderInfoLog(id, length, &length, message);
+		GlCall(glGetShaderInfoLog(id, length, &length, message));
 		std::cout << "Failed to compile " <<
 			(type == GL_VERTEX_SHADER ? "vertex" : "fragment")
 			<< " shader!" << std::endl;
 		std::cout << message << std::endl;
-		glDeleteShader(id);
+		GlCall(glDeleteShader(id));
 		return 0;
 	}
 
@@ -80,14 +101,14 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 	unsigned int program = glCreateProgram(); // returns ID of shader program
 	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader); // vs - VertexShader
 	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader); // vs - FragmentShader
-	glAttachShader(program, vs);
-	glAttachShader(program, fs);
+	GlCall(glAttachShader(program, vs));
+	GlCall(glAttachShader(program, fs));
 
-	glLinkProgram(program);
-	glValidateProgram(program);
+	GlCall(glLinkProgram(program));
+	GlCall(glValidateProgram(program));
 	
-	glDeleteShader(vs);
-	glDeleteShader(fs);
+	GlCall(glDeleteShader(vs));
+	GlCall(glDeleteShader(fs));
 
 	return program;
 }
@@ -131,52 +152,52 @@ int main(void)
 
 	// Создание и наполнение буффера в памяти видеократы
 	unsigned int buffer;
-	glGenBuffers(1, &buffer); // gives free int ID that we can use for new buffer binding
-	glBindBuffer(GL_ARRAY_BUFFER, buffer); // sets buffer ID to given free int ID (1)
-	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW); // Отправляет вертексы в OpenGl
-	glEnableVertexAttribArray(0); // Обязательно включать 
+	GlCall(glGenBuffers(1, &buffer)); // gives free int ID that we can use for new buffer binding
+	GlCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // sets buffer ID to given free int ID (1)
+	GlCall(glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW)); // Отправляет вертексы в OpenGl
+	GlCall(glEnableVertexAttribArray(0)); // Обязательно включать 
 	
-	glVertexAttribPointer(
+	GlCall(glVertexAttribPointer(
 		0, // index. Specifies the index of the generic vertex attribute to be modified.
 		2, // size. Specifies the number of components per generic vertex attribute. Must be 1, 2, 3, 4. 
 		GL_FLOAT, // type. Specifies the data type of each component in the array.
 		GL_FALSE, // normalized. specifies whether fixed-point data values should be normalized (GL_TRUE) or converted directly as fixed-point values (GL_FALSE) when they are accessed.
 		sizeof(float) * 2, // stride. Specifies the byte offset between consecutive generic vertex attributes. If stride is 0, the generic vertex attributes are understood to be tightly packed in the array. The initial value is 0.
-		(void*)0); // pointer. Specifies a offset of the first component of the first generic vertex attribute in the array in the data store of the buffer currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
+		(void*)0)); // pointer. Specifies a offset of the first component of the first generic vertex attribute in the array in the data store of the buffer currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
 
 	// Создание и наполнение буффера индексов в памяти видеокарты
 	unsigned int ibo; // Index Buffer Object
-	glGenBuffers(1, &ibo); // gives free int ID that we can use for new buffer binding
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); // sets buffer ID to given free int ID (2)
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); // Отправляет вертексы в OpenGl
-	glEnableVertexAttribArray(0); // Обязательно включать 
+	GlCall(glGenBuffers(1, &ibo)); // gives free int ID that we can use for new buffer binding
+	GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)); // sets buffer ID to given free int ID (2)
+	GlCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW)); // Отправляет вертексы в OpenGl
+	GlCall(glEnableVertexAttribArray(0)); // Обязательно включать 
 	
 	// Создание и компиляция программы-шейдера
 	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
 	std::cout << source.VertexSource << std::endl;
 	std::cout << source.FragmentSource << std::endl;
 	unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-	glUseProgram(shader);
+	GlCall(glUseProgram(shader));
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
-		glClear(GL_COLOR_BUFFER_BIT);
+		GlCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		glDrawElements(
+		GlCall(glDrawElements(
 			GL_TRIANGLES, // mode - Triangles, Specifies what kind of primitives to render. 
 			(sizeof(indices) / sizeof(*indices)),  // count - indices array length - number of indices we draw
 			GL_UNSIGNED_INT, // type Specifies the type of the values in indices.
-			nullptr); // we have allready bound ibo to the current GL_ELEMENT_ARRAY_BUFFER. Specifies an offset of the first index in the array in the data store of the buffer currently bound to the GL_ELEMENT_ARRAY_BUFFER target.			
-
+			nullptr)); // we have allready bound ibo to the current GL_ELEMENT_ARRAY_BUFFER. Specifies an offset of the first index in the array in the data store of the buffer currently bound to the GL_ELEMENT_ARRAY_BUFFER target.			
+			
 		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
+		GlCall(glfwSwapBuffers(window));
 
 		/* Poll for and process events */
 		glfwPollEvents();
 	}
-	glDeleteProgram(shader);
+	GlCall(glDeleteProgram(shader));
 	glfwTerminate();
 	return 0;
 }
