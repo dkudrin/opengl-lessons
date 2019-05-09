@@ -117,18 +117,25 @@ int main(void)
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
-	float positions[6] = {
-		-0.5f, -0.5f,
-		 0.0f,  0.5f,
-		 0.5f, -0.5f
+	float positions[] = { // против часовой стрелки
+		-0.5f, -0.5f, // 0
+		 0.5f, -0.5f, // 1
+		 0.5f,  0.5f, // 2
+		-0.5f,  0.5f  // 3
 	};
 
-	// Создание и наполнение буффера в памяти
+	unsigned int indices[] = { // всегда должен быть unsigned
+		0, 1, 2,  // первый треугольник
+		2, 3, 0   // второй треугольник
+	};
+
+	// Создание и наполнение буффера в памяти видеократы
 	unsigned int buffer;
 	glGenBuffers(1, &buffer); // gives free int ID that we can use for new buffer binding
 	glBindBuffer(GL_ARRAY_BUFFER, buffer); // sets buffer ID to given free int ID (1)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW); // Отправляет вертексы в OpenGl
 	glEnableVertexAttribArray(0); // Обязательно включать 
+	
 	glVertexAttribPointer(
 		0, // index. Specifies the index of the generic vertex attribute to be modified.
 		2, // size. Specifies the number of components per generic vertex attribute. Must be 1, 2, 3, 4. 
@@ -136,7 +143,13 @@ int main(void)
 		GL_FALSE, // normalized. specifies whether fixed-point data values should be normalized (GL_TRUE) or converted directly as fixed-point values (GL_FALSE) when they are accessed.
 		sizeof(float) * 2, // stride. Specifies the byte offset between consecutive generic vertex attributes. If stride is 0, the generic vertex attributes are understood to be tightly packed in the array. The initial value is 0.
 		(void*)0); // pointer. Specifies a offset of the first component of the first generic vertex attribute in the array in the data store of the buffer currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Создание и наполнение буффера индексов в памяти видеокарты
+	unsigned int ibo; // Index Buffer Object
+	glGenBuffers(1, &ibo); // gives free int ID that we can use for new buffer binding
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); // sets buffer ID to given free int ID (2)
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); // Отправляет вертексы в OpenGl
+	glEnableVertexAttribArray(0); // Обязательно включать 
 	
 	// Создание и компиляция программы-шейдера
 	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
@@ -151,10 +164,11 @@ int main(void)
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glDrawArrays(
-			GL_TRIANGLES, // mode - Triangles
-			0,  // 
-			3);
+		glDrawElements(
+			GL_TRIANGLES, // mode - Triangles, Specifies what kind of primitives to render. 
+			(sizeof(indices) / sizeof(*indices)),  // count - indices array length - number of indices we draw
+			GL_UNSIGNED_INT, // type Specifies the type of the values in indices.
+			nullptr); // we have allready bound ibo to the current GL_ELEMENT_ARRAY_BUFFER. Specifies an offset of the first index in the array in the data store of the buffer currently bound to the GL_ELEMENT_ARRAY_BUFFER target.			
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
