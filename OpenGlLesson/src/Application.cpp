@@ -131,6 +131,8 @@ int main(void)
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1); // подождать пока полностью отрисуется один frame перед swap buffers - технология vertical synchronisation (vsync)
+
 	if (glewInit() != GLEW_OK)
 	{
 		std::cout << "Error with glewInit!" << std::endl;
@@ -179,18 +181,37 @@ int main(void)
 	unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
 	GlCall(glUseProgram(shader));
 
+	GlCall(int uniformLocation = glGetUniformLocation(shader, "u_Color")); // получение места в памяти переменной u_Color указанной в GLSL
+
+	ASSERT(uniformLocation != -1); // Программа должна падать если нет адреса в памяти
+
+	GlCall(glUniform4f(uniformLocation, 0.2f, 0.3f, 0.8f, 1.0f)); // Наполнение данными о цвете
+
+	float redChannel = 0.0f;
+	float increment = 0.05f;
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		GlCall(glClear(GL_COLOR_BUFFER_BIT));
 
+		GlCall(glUniform4f(uniformLocation, redChannel, 0.3f, 0.8f, 1.0f)); // Наполнение данными о цвете
+		// Отрисовка
 		GlCall(glDrawElements(
 			GL_TRIANGLES, // mode - Triangles, Specifies what kind of primitives to render. 
 			(sizeof(indices) / sizeof(*indices)),  // count - indices array length - number of indices we draw
 			GL_UNSIGNED_INT, // type Specifies the type of the values in indices.
 			nullptr)); // we have allready bound ibo to the current GL_ELEMENT_ARRAY_BUFFER. Specifies an offset of the first index in the array in the data store of the buffer currently bound to the GL_ELEMENT_ARRAY_BUFFER target.			
-			
+		
+		// Animate on red channel every frame
+		if (redChannel > 1.0f)
+			increment = -0.05f;
+		else if (redChannel <  0.0f)
+			increment = 0.05f;
+
+		redChannel += increment;
+
 		/* Swap front and back buffers */
 		GlCall(glfwSwapBuffers(window));
 
