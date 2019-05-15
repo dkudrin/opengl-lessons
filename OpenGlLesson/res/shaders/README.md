@@ -1,6 +1,9 @@
 Best openGL text tutorial:
 http://www.opengl-tutorial.org
 
+Russian OpenGL text tutorial:
+https://triplepointfive.github.io/ogltutor/
+
 Best OpenGl  reference:
 http://docs.gl
 
