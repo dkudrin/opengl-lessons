@@ -152,6 +152,11 @@ int main(void)
 		2, 3, 0   // второй треугольник
 	};
 
+	// Создание Vertex Array Object (vao)
+	unsigned int vao;
+	GlCall(glGenVertexArrays(1, &vao));
+	GlCall(glBindVertexArray(vao));
+
 	// Создание и наполнение буффера в памяти видеократы
 	unsigned int buffer;
 	GlCall(glGenBuffers(1, &buffer)); // gives free int ID that we can use for new buffer binding
