@@ -1,31 +1,14 @@
 #include <GLEW/include/GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
+
 #pragma comment(lib,"user32.lib")
 
-#define ASSERT(x) if (!(x)) __debugbreak(); // Visual Studio specific breakpoint set
-#define GlCall(x) GlClearError();\
-	x;\
-	ASSERT(GlLogCall(__FILE__, #x, __LINE__))
-
-static void GlClearError() // функция очистки OpenGL от старых ошибок
-{
-	while (glGetError() != GL_NO_ERROR); // пока еть ошибки прочитать их
-}
-
-static bool GlLogCall(const char* fileName, const char* funcName, int codeLine) // функция вывода в цикле всех ошибок OpenGL
-{
-	while (GLenum error = glGetError())
-	{
-		std::cout << "[OpenGL Error] (" << error << ") File:" << fileName <<
-			"; Function name:" << funcName << "; Codeline: " << codeLine << std::endl;
-		return false;
-	}
-	return true;
-}
+#include "Renderer.h"
 
 struct ShaderProgramSource
 {
