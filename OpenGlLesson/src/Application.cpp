@@ -10,6 +10,9 @@
 
 #include "Renderer.h"
 
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+
 struct ShaderProgramSource
 {
 	std::string VertexSource;
@@ -141,10 +144,8 @@ int main(void)
 	GlCall(glBindVertexArray(vao));
 
 	// Создание и наполнение буффера в памяти видеократы
-	unsigned int buffer;
-	GlCall(glGenBuffers(1, &buffer)); // gives free int ID that we can use for new buffer binding
-	GlCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // sets buffer ID to given free int ID (1)
-	GlCall(glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW)); // Отправляет вертексы в OpenGl
+	VertexBuffer vb(positions, 4 * 2 * sizeof(float));	
+
 	GlCall(glEnableVertexAttribArray(0)); // Обязательно включать 
 	
 	GlCall(glVertexAttribPointer(
@@ -156,11 +157,7 @@ int main(void)
 		(void*)0)); // pointer. Specifies a offset of the first component of the first generic vertex attribute in the array in the data store of the buffer currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
 
 	// Создание и наполнение буффера индексов в памяти видеокарты
-	unsigned int ibo; // Index Buffer Object
-	GlCall(glGenBuffers(1, &ibo)); // gives free int ID that we can use for new buffer binding
-	GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)); // sets buffer ID to given free int ID (2)
-	GlCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW)); // Отправляет вертексы в OpenGl
-	GlCall(glEnableVertexAttribArray(0)); // Обязательно включать 
+	IndexBuffer ib(indices, 6);	
 	
 	// Создание и компиляция программы-шейдера
 	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
@@ -197,7 +194,7 @@ int main(void)
 		GlCall(glUniform4f(uniformLocation, redChannel, 0.3f, 0.8f, 1.0f)); // Наполнение данными о цвете
 
 		GlCall(glBindVertexArray(vao)); // Привязка vertex array object (vao)
-		GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)); // sets buffer ID to given free int ID (2)
+		ib.Bind(); // sets buffer ID to given free int ID (2)
 
 		
 		// Отрисовка
