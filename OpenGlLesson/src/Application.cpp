@@ -165,7 +165,7 @@ int main(void)
 	GlCall(glEnableVertexAttribArray(0)); // Обязательно включать 
 	
 	GlCall(glVertexAttribPointer(
-		0, // index. Specifies the index of the generic vertex attribute to be modified.
+		0, // ID of actual vao to them buffer will be bound. index. Specifies the index of the generic vertex attribute to be modified.
 		2, // size. Specifies the number of components per generic vertex attribute. Must be 1, 2, 3, 4. 
 		GL_FLOAT, // type. Specifies the data type of each component in the array.
 		GL_FALSE, // normalized. specifies whether fixed-point data values should be normalized (GL_TRUE) or converted directly as fixed-point values (GL_FALSE) when they are accessed.
@@ -194,6 +194,7 @@ int main(void)
 
 
 	// Unbind everething
+	GlCall(glBindVertexArray(0)); // Привязка vertex array пустого - обнуление
 	GlCall(glUseProgram(0));
 	GlCall(glBindBuffer(GL_ARRAY_BUFFER, 0)); // sets buffer ID to given free int ID (1)
 	GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)); // sets buffer ID to given free int ID (2)
@@ -212,16 +213,7 @@ int main(void)
 		GlCall(glUseProgram(shader));
 		GlCall(glUniform4f(uniformLocation, redChannel, 0.3f, 0.8f, 1.0f)); // Наполнение данными о цвете
 
-		GlCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // sets buffer ID to given free int ID (1)
-		GlCall(glEnableVertexAttribArray(0)); // Обязательно включать
-		GlCall(glVertexAttribPointer(
-			0, // index. Specifies the index of the generic vertex attribute to be modified.
-			2, // size. Specifies the number of components per generic vertex attribute. Must be 1, 2, 3, 4. 
-			GL_FLOAT, // type. Specifies the data type of each component in the array.
-			GL_FALSE, // normalized. specifies whether fixed-point data values should be normalized (GL_TRUE) or converted directly as fixed-point values (GL_FALSE) when they are accessed.
-			sizeof(float) * 2, // stride. Specifies the byte offset between consecutive generic vertex attributes. If stride is 0, the generic vertex attributes are understood to be tightly packed in the array. The initial value is 0.
-			(void*)0)); // pointer. Specifies a offset of the first component of the first generic vertex attribute in the array in the data store of the buffer currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
-
+		GlCall(glBindVertexArray(vao)); // Привязка vertex array object (vao)
 		GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)); // sets buffer ID to given free int ID (2)
 
 		
