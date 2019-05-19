@@ -126,99 +126,102 @@ int main(void)
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
-	float positions[] = { // против часовой стрелки
-		-0.5f, -0.5f, // 0
-		 0.5f, -0.5f, // 1
-		 0.5f,  0.5f, // 2
-		-0.5f,  0.5f  // 3
-	};
-
-	unsigned int indices[] = { // всегда должен быть unsigned
-		0, 1, 2,  // первый треугольник
-		2, 3, 0   // второй треугольник
-	};
-
-	// Создание Vertex Array Object (vao)
-	unsigned int vao;
-	GlCall(glGenVertexArrays(1, &vao));
-	GlCall(glBindVertexArray(vao));
-
-	// Создание и наполнение буффера в памяти видеократы
-	VertexBuffer vb(positions, 4 * 2 * sizeof(float));	
-
-	GlCall(glEnableVertexAttribArray(0)); // Обязательно включать 
-	
-	GlCall(glVertexAttribPointer(
-		0, // ID of actual vao to them buffer will be bound. index. Specifies the index of the generic vertex attribute to be modified.
-		2, // size. Specifies the number of components per generic vertex attribute. Must be 1, 2, 3, 4. 
-		GL_FLOAT, // type. Specifies the data type of each component in the array.
-		GL_FALSE, // normalized. specifies whether fixed-point data values should be normalized (GL_TRUE) or converted directly as fixed-point values (GL_FALSE) when they are accessed.
-		sizeof(float) * 2, // stride. Specifies the byte offset between consecutive generic vertex attributes. If stride is 0, the generic vertex attributes are understood to be tightly packed in the array. The initial value is 0.
-		(void*)0)); // pointer. Specifies a offset of the first component of the first generic vertex attribute in the array in the data store of the buffer currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
-
-	// Создание и наполнение буффера индексов в памяти видеокарты
-	IndexBuffer ib(indices, 6);	
-	
-	// Создание и компиляция программы-шейдера
-	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-	std::cout << source.VertexSource << std::endl;
-	std::cout << source.FragmentSource << std::endl;
-	unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-	GlCall(glUseProgram(shader));
-
-	GlCall(int uniformLocation = glGetUniformLocation(shader, "u_Color")); // получение места в памяти переменной u_Color указанной в GLSL
-
-	ASSERT(uniformLocation != -1); // Программа должна падать если нет адреса в памяти
-
-	GlCall(glUniform4f(uniformLocation, 0.2f, 0.3f, 0.8f, 1.0f)); // Наполнение данными о цвете
-
-
-	// Unbind everething
-	GlCall(glBindVertexArray(0)); // Привязка vertex array пустого - обнуление
-	GlCall(glUseProgram(0));
-	GlCall(glBindBuffer(GL_ARRAY_BUFFER, 0)); // sets buffer ID to given free int ID (1)
-	GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)); // sets buffer ID to given free int ID (2)
-	
-
-
-	float redChannel = 0.0f;
-	float increment = 0.05f;
-
-	/* Loop until the user closes the window */
-	while (!glfwWindowShouldClose(window))
 	{
-		/* Render here */
-		GlCall(glClear(GL_COLOR_BUFFER_BIT));
 
+		float positions[] = { // против часовой стрелки
+			-0.5f, -0.5f, // 0
+			 0.5f, -0.5f, // 1
+			 0.5f,  0.5f, // 2
+			-0.5f,  0.5f  // 3
+		};
+
+		unsigned int indices[] = { // всегда должен быть unsigned
+			0, 1, 2,  // первый треугольник
+			2, 3, 0   // второй треугольник
+		};
+
+		// Создание Vertex Array Object (vao)
+		unsigned int vao;
+		GlCall(glGenVertexArrays(1, &vao));
+		GlCall(glBindVertexArray(vao));
+
+		// Создание и наполнение буффера в памяти видеократы
+		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+
+		GlCall(glEnableVertexAttribArray(0)); // Обязательно включать 
+
+		GlCall(glVertexAttribPointer(
+			0, // ID of actual vao to them buffer will be bound. index. Specifies the index of the generic vertex attribute to be modified.
+			2, // size. Specifies the number of components per generic vertex attribute. Must be 1, 2, 3, 4. 
+			GL_FLOAT, // type. Specifies the data type of each component in the array.
+			GL_FALSE, // normalized. specifies whether fixed-point data values should be normalized (GL_TRUE) or converted directly as fixed-point values (GL_FALSE) when they are accessed.
+			sizeof(float) * 2, // stride. Specifies the byte offset between consecutive generic vertex attributes. If stride is 0, the generic vertex attributes are understood to be tightly packed in the array. The initial value is 0.
+			(void*)0)); // pointer. Specifies a offset of the first component of the first generic vertex attribute in the array in the data store of the buffer currently bound to the GL_ARRAY_BUFFER target. The initial value is 0.
+
+		// Создание и наполнение буффера индексов в памяти видеокарты
+		IndexBuffer ib(indices, 6);
+
+		// Создание и компиляция программы-шейдера
+		ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+		std::cout << source.VertexSource << std::endl;
+		std::cout << source.FragmentSource << std::endl;
+		unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
 		GlCall(glUseProgram(shader));
-		GlCall(glUniform4f(uniformLocation, redChannel, 0.3f, 0.8f, 1.0f)); // Наполнение данными о цвете
 
-		GlCall(glBindVertexArray(vao)); // Привязка vertex array object (vao)
-		ib.Bind(); // sets buffer ID to given free int ID (2)
+		GlCall(int uniformLocation = glGetUniformLocation(shader, "u_Color")); // получение места в памяти переменной u_Color указанной в GLSL
 
-		
-		// Отрисовка
-		GlCall(glDrawElements(
-			GL_TRIANGLES, // mode - Triangles, Specifies what kind of primitives to render. 
-			(sizeof(indices) / sizeof(*indices)),  // count - indices array length - number of indices we draw
-			GL_UNSIGNED_INT, // type Specifies the type of the values in indices.
-			nullptr)); // we have allready bound ibo to the current GL_ELEMENT_ARRAY_BUFFER. Specifies an offset of the first index in the array in the data store of the buffer currently bound to the GL_ELEMENT_ARRAY_BUFFER target.			
-		
-		// Animate on red channel every frame
-		if (redChannel > 1.0f)
-			increment = -0.05f;
-		else if (redChannel <  0.0f)
-			increment = 0.05f;
+		ASSERT(uniformLocation != -1); // Программа должна падать если нет адреса в памяти
 
-		redChannel += increment;
+		GlCall(glUniform4f(uniformLocation, 0.2f, 0.3f, 0.8f, 1.0f)); // Наполнение данными о цвете
 
-		/* Swap front and back buffers */
-		GlCall(glfwSwapBuffers(window));
 
-		/* Poll for and process events */
-		glfwPollEvents();
+		// Unbind everething
+		GlCall(glBindVertexArray(0)); // Привязка vertex array пустого - обнуление
+		GlCall(glUseProgram(0));
+		GlCall(glBindBuffer(GL_ARRAY_BUFFER, 0)); // sets buffer ID to given free int ID (1)
+		GlCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)); // sets buffer ID to given free int ID (2)
+
+
+
+		float redChannel = 0.0f;
+		float increment = 0.05f;
+
+		/* Loop until the user closes the window */
+		while (!glfwWindowShouldClose(window))
+		{
+			/* Render here */
+			GlCall(glClear(GL_COLOR_BUFFER_BIT));
+
+			GlCall(glUseProgram(shader));
+			GlCall(glUniform4f(uniformLocation, redChannel, 0.3f, 0.8f, 1.0f)); // Наполнение данными о цвете
+
+			GlCall(glBindVertexArray(vao)); // Привязка vertex array object (vao)
+			ib.Bind(); // sets buffer ID to given free int ID (2)
+
+
+			// Отрисовка
+			GlCall(glDrawElements(
+				GL_TRIANGLES, // mode - Triangles, Specifies what kind of primitives to render. 
+				(sizeof(indices) / sizeof(*indices)),  // count - indices array length - number of indices we draw
+				GL_UNSIGNED_INT, // type Specifies the type of the values in indices.
+				nullptr)); // we have allready bound ibo to the current GL_ELEMENT_ARRAY_BUFFER. Specifies an offset of the first index in the array in the data store of the buffer currently bound to the GL_ELEMENT_ARRAY_BUFFER target.			
+
+			// Animate on red channel every frame
+			if (redChannel > 1.0f)
+				increment = -0.05f;
+			else if (redChannel < 0.0f)
+				increment = 0.05f;
+
+			redChannel += increment;
+
+			/* Swap front and back buffers */
+			GlCall(glfwSwapBuffers(window));
+
+			/* Poll for and process events */
+			glfwPollEvents();
+		}
+		GlCall(glDeleteProgram(shader));
 	}
-	GlCall(glDeleteProgram(shader));
-	glfwTerminate();
+	glfwTerminate(); // Уничтожение контекста OpenGl
 	return 0;
 }
